@@ -24,7 +24,7 @@ class Config:
         log_level: Logging level
     """
     
-    default_model: str = "gpt-4o"
+    default_model: str = "llama-3.2"  # Free local model by default (Ollama)
     retry_attempts: int = 3
     retry_delay: float = 1.0
     timeout: int = 60

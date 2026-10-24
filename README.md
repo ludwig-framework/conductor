@@ -222,3 +222,18 @@ pytest
 ## License
 
 MIT License - see [LICENSE](LICENSE)
+
+## Free & Open Source by Default
+
+Conductor uses free, local models by default via [Ollama](https://ollama.com). No API keys required to get started.
+
+```bash
+ollama pull llama-3.2
+```
+
+```python
+from conductor import Agent
+
+agent = Agent(name="assistant", model="llama-3.2")
+result = await agent.run("Hello!")
+```

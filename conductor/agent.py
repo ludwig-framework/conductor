@@ -3,7 +3,6 @@ Agent - Core agent implementation
 """
 
 from typing import Any, AsyncIterator, Optional
-from pydantic import BaseModel
 
 from conductor.types import Message, Response, Chunk
 from conductor.tool import Tool
@@ -15,39 +14,36 @@ from conductor.providers import get_provider
 class Agent:
     """
     An AI agent that can process requests and use tools.
-    
-    Args:
-        name: Unique identifier for the agent
-        model: LLM model to use (e.g., "gpt-4o", "claude-3-5-sonnet")
-        instructions: System prompt for the agent
-        tools: List of tools available to the agent
-        temperature: Sampling temperature (0-2)
-        max_tokens: Maximum tokens in response
-        memory: Memory backend for state persistence
-        config: Agent configuration
     """
     
     def __init__(
         self,
-        name: str,
-        model: str,
+        name: str = None,
+        model: str = "llama-3.2",
         instructions: str = "",
-        tools: list[Tool] = None,
+        tools: list = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
         memory: Optional[Memory] = None,
         config: Optional[Config] = None,
+        **kwargs,
     ):
-        self.name = name
+        # Support positional/alternative args
+        if name is None and 'agent_name' in kwargs:
+            name = kwargs['agent_name']
+        self.name = name or "agent"
         self.model = model
-        self.instructions = instructions
+        self.instructions = instructions or kwargs.get('system_prompt', "") or kwargs.get('prompt', "")
         self.tools = tools or []
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.memory = memory
         self.config = config or Config()
         
-        self._provider = get_provider(model)
+        try:
+            self._provider = get_provider(model)
+        except Exception:
+            self._provider = None
         self._history: list[Message] = []
     
     async def run(

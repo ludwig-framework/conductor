@@ -12,44 +12,70 @@ class Tool:
     Decorator to define agent tools.
     
     Tools are functions that agents can call to interact with external systems.
-    
-    Args:
-        description: What the tool does (shown to the LLM)
-        name: Tool identifier (defaults to function name)
-        schema: JSON schema for parameters (auto-generated if not provided)
-    
-    Example:
-        @Tool(description="Search the web for information")
-        async def web_search(query: str) -> str:
-            return results
     """
     
     def __init__(
         self,
-        description: str,
+        description: str = None,
         name: Optional[str] = None,
         schema: Optional[dict] = None,
+        func: Optional[Callable] = None,
     ):
+        if callable(description) and func is None and name is None and schema is None:
+            # Used as @Tool without args
+            func = description
+            description = None
         self.description = description
         self._name = name
         self._schema = schema
-        self._func: Optional[Callable] = None
+        self._func: Optional[Callable] = func
+        
+        if func is not None:
+            self._bind(func)
     
-    def __call__(self, func: Callable) -> "Tool":
+    def _bind(self, func: Callable) -> None:
         self._func = func
         if self._name is None:
             self._name = func.__name__
+        if self.description is None:
+            # Extract description from docstring
+            if func.__doc__:
+                # Take first line of docstring
+                self.description = func.__doc__.strip().split('\n')[0].strip()
+            else:
+                self.description = self._name
         if self._schema is None:
             self._schema = self._generate_schema(func)
+    
+    def __call__(self, func: Callable = None) -> "Tool":
+        if func is not None:
+            self._bind(func)
+            # Copy attributes to function for compatibility
+            func.name = self.name
+            func.description = self.description
+            func.schema = self.schema
+            func.to_openai_format = self.to_openai_format
+            func.to_anthropic_format = self.to_anthropic_format
+            func.execute = self.execute
+            func._tool = self
+            return func
         return self
     
     @property
     def name(self) -> str:
         return self._name
     
+    @name.setter
+    def name(self, value: str):
+        self._name = value
+    
     @property
     def schema(self) -> dict:
         return self._schema
+    
+    @schema.setter
+    def schema(self, value: dict):
+        self._schema = value
     
     async def execute(self, **kwargs) -> Any:
         """Execute the tool with given arguments."""
@@ -64,7 +90,7 @@ class Tool:
     def _generate_schema(self, func: Callable) -> dict:
         """Generate JSON schema from function signature."""
         sig = inspect.signature(func)
-        hints = func.__annotations__
+        hints = getattr(func, '__annotations__', {})
         
         properties = {}
         required = []
@@ -78,11 +104,6 @@ class Tool:
             
             properties[param_name] = {"type": json_type}
             
-            # Add description from docstring if available
-            if func.__doc__:
-                # Simple docstring parsing
-                pass
-            
             if param.default is inspect.Parameter.empty:
                 required.append(param_name)
         
@@ -94,6 +115,21 @@ class Tool:
     
     def _python_type_to_json(self, python_type) -> str:
         """Convert Python type to JSON schema type."""
+        # Handle string annotations
+        if isinstance(python_type, str):
+            if python_type in ('str',):
+                return "string"
+            elif python_type in ('int',):
+                return "integer"
+            elif python_type in ('float',):
+                return "number"
+            elif python_type in ('bool',):
+                return "boolean"
+            elif python_type.startswith('list'):
+                return "array"
+            elif python_type.startswith('dict'):
+                return "object"
+            return "string"
         type_map = {
             str: "string",
             int: "integer",
@@ -122,3 +158,20 @@ class Tool:
             "description": self.description,
             "input_schema": self.schema,
         }
+
+
+# Decorator function
+def tool(func: Callable = None, description: str = None, name: str = None, **kwargs):
+    """Tool decorator."""
+    if func is not None and callable(func):
+        t = Tool(description=description, name=name, **kwargs)
+        return t(func)
+    else:
+        def decorator(f):
+            t = Tool(description=description or func if isinstance(func, str) else description, name=name, **kwargs)
+            return t(f)
+        return decorator
+
+
+# Alias
+ToolDecorator = Tool

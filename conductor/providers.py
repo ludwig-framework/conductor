@@ -1,7 +1,8 @@
 """
-Providers - LLM provider integrations
+Providers - LLM provider integrations (Free local models by default)
 """
 
+import os
 from typing import AsyncIterator
 from abc import ABC, abstractmethod
 
@@ -35,12 +36,106 @@ class Provider(ABC):
         pass
 
 
+class OllamaProvider(Provider):
+    """Ollama local provider (free, open source)."""
+    
+    def __init__(self):
+        try:
+            import openai
+            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+            self.client = openai.AsyncOpenAI(base_url=base_url, api_key="ollama")
+        except Exception:
+            self.client = None
+    
+    async def complete(
+        self,
+        messages: list[Message],
+        model: str,
+        tools: list[Tool] = None,
+        **kwargs
+    ) -> Response:
+        if not self.client:
+            return Response(content="[Ollama not available. Install and run: ollama pull llama-3.2]", tool_calls=[], usage=None, model=model, finish_reason="stop")
+        
+        formatted_messages = [
+            {"role": m.role, "content": m.content}
+            for m in messages
+        ]
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=formatted_messages,
+                **kwargs
+            )
+            
+            choice = response.choices[0]
+            usage = None
+            if response.usage:
+                usage = Usage(
+                    prompt_tokens=response.usage.prompt_tokens,
+                    completion_tokens=response.usage.completion_tokens,
+                    total_tokens=response.usage.total_tokens,
+                )
+            
+            return Response(
+                content=choice.message.content or "",
+                tool_calls=[],
+                usage=usage,
+                model=model,
+                finish_reason=choice.finish_reason,
+            )
+        except Exception as e:
+            return Response(content=f"Error: {e}", tool_calls=[], usage=None, model=model, finish_reason="stop")
+    
+    async def stream(
+        self,
+        messages: list[Message],
+        model: str,
+        tools: list[Tool] = None,
+        **kwargs
+    ) -> AsyncIterator[Chunk]:
+        if not self.client:
+            yield Chunk(content="[Ollama not available]", delta="", done=True)
+            return
+        
+        formatted_messages = [
+            {"role": m.role, "content": m.content}
+            for m in messages
+        ]
+        
+        try:
+            stream = await self.client.chat.completions.create(
+                model=model,
+                messages=formatted_messages,
+                stream=True,
+                **kwargs
+            )
+            
+            full_content = ""
+            async for chunk in stream:
+                delta = chunk.choices[0].delta
+                content = delta.content or ""
+                full_content += content
+                
+                yield Chunk(
+                    content=full_content,
+                    delta=content,
+                    done=chunk.choices[0].finish_reason is not None,
+                )
+        except Exception as e:
+            yield Chunk(content=f"Error: {e}", delta="", done=True)
+
+
 class OpenAIProvider(Provider):
     """OpenAI API provider."""
     
     def __init__(self):
         import openai
-        self.client = openai.AsyncOpenAI()
+        try:
+            self.client = openai.AsyncOpenAI()
+        except Exception:
+            self.client = None
     
     async def complete(
         self,
@@ -130,7 +225,10 @@ class AnthropicProvider(Provider):
     
     def __init__(self):
         import anthropic
-        self.client = anthropic.AsyncAnthropic()
+        try:
+            self.client = anthropic.AsyncAnthropic()
+        except Exception:
+            self.client = None
     
     async def complete(
         self,
@@ -222,11 +320,25 @@ class AnthropicProvider(Provider):
 
 
 def get_provider(model: str) -> Provider:
-    """Get the appropriate provider for a model."""
-    if model.startswith("gpt") or model.startswith("o1"):
+    """Get the appropriate provider for a model (defaults to free local Ollama)."""
+    # Check env for provider override
+    provider_override = os.getenv("CONDUCTOR_PROVIDER") or os.getenv("LUDWIG_AI_PROVIDER")
+    if provider_override == "openai":
         return OpenAIProvider()
-    elif model.startswith("claude"):
+    elif provider_override == "anthropic":
         return AnthropicProvider()
+    elif provider_override == "ollama":
+        return OllamaProvider()
+    
+    if model.startswith("gpt") or model.startswith("o1"):
+        # Only use OpenAI if key is set, else fallback to Ollama
+        if os.getenv("OPENAI_API_KEY"):
+            return OpenAIProvider()
+        return OllamaProvider()
+    elif model.startswith("claude"):
+        if os.getenv("ANTHROPIC_API_KEY"):
+            return AnthropicProvider()
+        return OllamaProvider()
     else:
-        # Default to OpenAI-compatible
-        return OpenAIProvider()
+        # Default to free local Ollama
+        return OllamaProvider()
