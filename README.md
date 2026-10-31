@@ -6,8 +6,13 @@
 <p align="center">Production-grade AI agent orchestration for Python</p>
 
 <p align="center">
+  <a href="https://github.com/ludwig-framework/conductor/actions/workflows/ci.yml"><img src="https://github.com/ludwig-framework/conductor/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://pypi.org/project/conductor-agents/"><img src="https://img.shields.io/pypi/v/conductor-agents.svg?color=blue" alt="PyPI version"></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="Python 3.10+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="MIT License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/python-3.10+-blue" alt="Python 3.10+"></a>
+  <a href="https://github.com/ludwig-framework/conductor/stargazers"><img src="https://img.shields.io/github/stars/ludwig-framework/conductor?style=flat&logo=github&color=yellow" alt="Stars"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://github.com/ludwig-framework/ludwig"><img src="https://img.shields.io/badge/part%20of-Ludwig%20Framework-blueviolet" alt="Part of Ludwig Framework"></a>
 </p>
 
 ---
@@ -53,7 +58,7 @@ pip install conductor-agents
 
 Or from source:
 ```bash
-git clone https://github.com/NanaBright/conductor.git
+git clone https://github.com/ludwig-framework/conductor.git
 cd conductor
 pip install -e .
 ```
@@ -211,7 +216,7 @@ agent = Agent(name="assistant", model="gpt-4o", config=config)
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```bash
-git clone https://github.com/NanaBright/conductor.git
+git clone https://github.com/ludwig-framework/conductor.git
 cd conductor
 pip install -e ".[dev]"
 pytest
