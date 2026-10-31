@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="NanaBright",
-    url="https://github.com/NanaBright/conductor",
+    url="https://github.com/ludwig-framework/conductor",
     packages=find_packages(),
     python_requires=">=3.10",
     install_requires=[
