@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+- CI Ruff step fails the job on syntax and undefined-name errors (`E9`, `F63`, `F7`, `F82`)
+
 ### Added
 - `tool` decorator function exported from package (`conductor.tool`, `conductor`)
 - `Step`, `WorkflowStep`, `WorkflowResult` exported from package

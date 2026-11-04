@@ -2,6 +2,8 @@
 Agent - Core agent implementation
 """
 
+from __future__ import annotations
+
 from typing import Any, AsyncIterator, Optional
 
 from conductor.types import Message, Response, Chunk

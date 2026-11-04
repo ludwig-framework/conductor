@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Conductor Logo" width="120"/>
+  <img src="assets/logo.svg" alt="Conductor Logo" width="120"/>
 </p>
 
 <h1 align="center">Conductor</h1>
@@ -148,11 +148,11 @@ conductor new my-agent-project
 # Run an agent
 conductor run agent.py
 
-# Start dev server with hot reload
+# Start dev server with hot reload (coming in v0.2)
 conductor dev
 
-# Deploy
-conductor deploy --target kubernetes
+# Deploy (coming in v0.2)
+conductor deploy --target docker
 ```
 
 ---
@@ -206,8 +206,9 @@ agent = Agent(name="assistant", model="gpt-4o", config=config)
 
 - [Getting Started](docs/GETTING_STARTED.md) - Installation and first agent
 - [Core Concepts](docs/CONCEPTS.md) - Agents, tools, and workflows
+- [Examples](docs/EXAMPLES.md) - Real-world agent architectures and pipelines
 - [API Reference](docs/API.md) - Complete API documentation
-- [Deployment](docs/DEPLOYMENT.md) - Production deployment guides
+- [Deployment](docs/DEPLOYMENT.md) - Production deployment and containerization guides
 
 ---
 
