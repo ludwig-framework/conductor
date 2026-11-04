@@ -131,3 +131,4 @@ redis_memory = Memory(
 
 agent = Agent(name="assistant", memory=redis_memory)
 ```
+

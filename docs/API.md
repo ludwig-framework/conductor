@@ -231,3 +231,4 @@ Returned by `agent.run()`:
 - `usage` (`Usage`): Token consumption breakdown (`prompt_tokens`, `completion_tokens`, `total_tokens`).
 - `model` (`str`): Model identifier.
 - `finish_reason` (`str`): Completion reason (e.g., `"stop"`).
+
