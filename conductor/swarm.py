@@ -2,6 +2,8 @@
 Swarm - Multi-agent coordination
 """
 
+from __future__ import annotations
+
 from typing import Literal
 from dataclasses import dataclass
 

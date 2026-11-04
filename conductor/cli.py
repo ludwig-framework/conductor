@@ -105,15 +105,16 @@ def run_agent(file: str):
 
 def start_dev_server(port: int):
     """Start development server with hot reload."""
-    print(f"Starting dev server on port {port}...")
-    print("Hot reload enabled. Press Ctrl+C to stop.")
-    # TODO: Implement hot reload server
+    print(f"Starting Conductor dev server on port {port}...")
+    print("Development server with live hot reload is scheduled for v0.2.0.")
+    print("In the meantime, execute agents directly using: python agent.py (or 'conductor run agent.py')")
 
 
 def deploy(target: str):
     """Deploy agents to target platform."""
-    print(f"Deploying to {target}...")
-    # TODO: Implement deployment
+    print(f"Deploying agents to target: {target}...")
+    print("Automated deployment command is scheduled for v0.2.0.")
+    print("Refer to docs/DEPLOYMENT.md for containerization and production patterns.")
 
 
 if __name__ == "__main__":
